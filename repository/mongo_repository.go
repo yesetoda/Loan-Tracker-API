@@ -1,33 +1,275 @@
+// package repository
+
+// import (
+// 	"context"
+// 	"example/b/Loan-Tracker-API/domain"
+// 	"example/b/Loan-Tracker-API/infrastructures/password_service"
+// 	"fmt"
+// 	"time"
+
+// 	"go.mongodb.org/mongo-driver/bson"
+// 	"go.mongodb.org/mongo-driver/bson/primitive"
+// 	"go.mongodb.org/mongo-driver/mongo"
+// 	"go.mongodb.org/mongo-driver/mongo/options"
+// )
+
+// type MongoRepo struct {
+// 	UserCollection *mongo.Collection
+// 	LoanCollection *mongo.Collection
+// }
+
+// func NewMongoRepo(uc *mongo.Collection, lc *mongo.Collection) GeneralRepository {
+// 	return &MongoRepo{
+// 		UserCollection: uc,
+// 		LoanCollection: lc,
+// 	}
+// }
+
+// func IsValidObjectID(id string) (primitive.ObjectID, error) {
+// 	oid, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return primitive.NilObjectID, err
+// 	}
+// 	return oid, nil
+// }
+
+// func (mr *MongoRepo) CreateUser(user domain.User) (domain.User, error) {
+// 	cnt, err := mr.UserCollection.CountDocuments(context.TODO(), bson.M{})
+// 	if err != nil {
+// 		return domain.User{}, err
+// 	}
+// 	if cnt == 0 {
+// 		user.IsAdmin = true
+
+// 	}
+
+// 	_, err = mr.UserCollection.InsertOne(context.TODO(), user)
+// 	if err != nil {
+// 		if mongo.IsDuplicateKeyError(err) {
+// 			return domain.User{}, fmt.Errorf("username or email already exists")
+// 		}
+// 	}
+// 	return user, nil
+// }
+
+// func (mr *MongoRepo) FindUserByEmail(email string) (domain.User, error) {
+// 	var user domain.User
+// 	err := mr.UserCollection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
+// 	if err != nil {
+// 		return domain.User{}, fmt.Errorf("no such user")
+// 	}
+// 	return user, nil
+// }
+// func (mr *MongoRepo) FinduserById(ids string) (domain.User, error) {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return domain.User{}, err
+// 	}
+// 	var user domain.User
+// 	err = mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+// 	if err != nil {
+// 		return domain.User{}, fmt.Errorf("no such user")
+// 	}
+// 	return user, nil
+// }
+// func (mr *MongoRepo) UpdateUser(ids string, user domain.User) error {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, user)
+// 	fmt.Println(err, id, ids, err)
+// 	if err != nil {
+// 		return fmt.Errorf("update failed")
+// 	}
+// 	if result.ModifiedCount == 0 {
+// 		return fmt.Errorf("update failed")
+
+// 	}
+// 	return nil
+// }
+// func (mr *MongoRepo) DeleteUser(ids string) error {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	result, err := mr.UserCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
+// 	if err != nil {
+// 		return fmt.Errorf("delete failed")
+// 	}
+// 	if result.DeletedCount == 0 {
+// 		return fmt.Errorf("delete failed")
+// 	}
+// 	return nil
+// }
+// func (mr *MongoRepo) VerifiyUser(ids string) error {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println("this is the verifiy user", id)
+
+// 	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"verified": true})
+// 	if err != nil {
+// 		return fmt.Errorf("verification failed")
+// 	}
+// 	if result.ModifiedCount == 0 {
+// 		return fmt.Errorf("verification failed")
+
+// 	}
+// 	return nil
+// }
+// func (mr *MongoRepo) AuthenticateUser(ids string, password string) error {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var user domain.User
+// 	err = mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+// 	if err != nil {
+// 		return fmt.Errorf("invalid credential")
+// 	}
+// 	if err = password_service.CheckPasswordHash(password, user.Password); err != nil {
+// 		return fmt.Errorf("invalid credential")
+// 	}
+// 	return nil
+// }
+// func (mr *MongoRepo) ListAllUsers() []domain.User {
+// 	var users []domain.User
+// 	cursor, err := mr.UserCollection.Find(context.TODO(), bson.M{})
+// 	if err != nil {
+// 		return users
+// 	}
+// 	for cursor.Next(context.TODO()) {
+// 		var user domain.User
+// 		cursor.Decode(&user)
+// 		users = append(users, user)
+// 	}
+// 	return users
+// }
+// func (mr *MongoRepo) ResetPassword(ids string, password string) error {
+// 	id, err := IsValidObjectID(ids)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"password": password})
+// 	if err != nil {
+// 		return fmt.Errorf("password Reset failed")
+// 	}
+// 	if result.ModifiedCount == 0 {
+// 		return fmt.Errorf("password Reset failed")
+// 	}
+// 	return nil
+// }
+
+// func (mr *MongoRepo) CreateLoan(loan domain.Loan) (domain.Loan, error) {
+// 	loan.ID = primitive.NewObjectID().Hex()
+// 	loan.CreatedAt = time.Now()
+// 	loan.UpdatedAt = time.Now()
+
+// 	_, err := mr.LoanCollection.InsertOne(context.TODO(), loan)
+// 	return loan, err
+// }
+
+// func (r *MongoRepo) FindLoanByID(id string) (*domain.Loan, error) {
+// 	var loan domain.Loan
+// 	err := r.LoanCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&loan)
+// 	return &loan, err
+// }
+
+// func (r *MongoRepo) FindLoansByUserID(userID string) ([]domain.Loan, error) {
+// 	var loans []domain.Loan
+// 	cursor, err := r.LoanCollection.Find(context.TODO(), bson.M{"user_id": userID})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = cursor.All(context.TODO(), &loans)
+// 	return loans, err
+// }
+
+// func (r *MongoRepo) FindAllLoans(status string, order string) ([]domain.Loan, error) {
+// 	var loans []domain.Loan
+
+// 	findOptions := options.Find()
+// 	if order == "desc" {
+// 		findOptions.SetSort(bson.D{{Key: "created_at", Value: -1}})
+// 	} else {
+// 		findOptions.SetSort(bson.D{{Key: "created_at", Value: 1}})
+// 	}
+
+// 	filter := bson.M{}
+// 	if status != "all" {
+// 		filter["status"] = status
+// 	}
+
+// 	cursor, err := r.LoanCollection.Find(context.TODO(), filter, findOptions)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = cursor.All(context.TODO(), &loans)
+// 	return loans, err
+// }
+
+// func (r *MongoRepo) UpdateLoanStatus(id string, status string) (string, error) {
+// 	_, err := r.LoanCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": bson.M{"status": status, "updated_at": time.Now()}})
+// 	if err != nil {
+// 		return "Update failed", err
+// 	}
+// 	return "Loan status updated successfully", nil
+// }
+
+// func (r *MongoRepo) DeleteLoan(id string) (string, error) {
+// 	_, err := r.LoanCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
+// 	if err != nil {
+// 		return "Delete failed", err
+// 	}
+// 	return "deleted loan with id " + id, nil
+// }
+
 package repository
 
 import (
 	"context"
+	"errors"
 	"example/b/Loan-Tracker-API/domain"
 	"example/b/Loan-Tracker-API/infrastructures/password_service"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoRepo struct {
 	UserCollection *mongo.Collection
+	LoanCollection *mongo.Collection
 }
 
-func NewMongoRepo(uc *mongo.Collection) GeneralRepository {
+func NewMongoRepo(uc *mongo.Collection, lc *mongo.Collection) GeneralRepository {
 	return &MongoRepo{
 		UserCollection: uc,
+		LoanCollection: lc,
 	}
+}
+
+func IsValidObjectID(id string) (primitive.ObjectID, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	return oid, nil
 }
 
 func (mr *MongoRepo) CreateUser(user domain.User) (domain.User, error) {
-	cnt, err := mr.UserCollection.CountDocuments(context.TODO(), bson.M{})
+	// Set admin status if this is the first user
+	count, err := mr.UserCollection.CountDocuments(context.TODO(), bson.M{})
 	if err != nil {
 		return domain.User{}, err
 	}
-	if cnt == 0 {
+	if count == 0 {
 		user.IsAdmin = true
-		user.Verified = true
 	}
 
 	_, err = mr.UserCollection.InsertOne(context.TODO(), user)
@@ -35,6 +277,7 @@ func (mr *MongoRepo) CreateUser(user domain.User) (domain.User, error) {
 		if mongo.IsDuplicateKeyError(err) {
 			return domain.User{}, fmt.Errorf("username or email already exists")
 		}
+		return domain.User{}, err
 	}
 	return user, nil
 }
@@ -47,77 +290,274 @@ func (mr *MongoRepo) FindUserByEmail(email string) (domain.User, error) {
 	}
 	return user, nil
 }
-func (mr *MongoRepo) FinduserById(id string) (domain.User, error) {
+
+func (mr *MongoRepo) FindUserById(id string) (domain.User, error) {
+	objectID, err := IsValidObjectID(id)
+	if err != nil {
+		return domain.User{}, err
+	}
 	var user domain.User
-	err := mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	err = mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&user)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("no such user")
 	}
 	return user, nil
 }
+
 func (mr *MongoRepo) UpdateUser(id string, user domain.User) error {
-	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, user)
+	objectID, err := IsValidObjectID(id)
 	if err != nil {
-		return fmt.Errorf("update failed")
+		return err
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"email":            user.Email,
+			"first_name":       user.FirstName,
+			"last_name":        user.LastName,
+			"verified":         user.Verified,
+			"is_admin":         user.IsAdmin,
+			"updated_at":       time.Now(),
+			"verify_token":     user.VerifyToken,
+			"verify_token_exp": user.VerfyTokenExp,
+		},
+	}
+
+	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": objectID}, update)
+	if err != nil {
+		return fmt.Errorf("update failed: %w", err)
 	}
 	if result.ModifiedCount == 0 {
-		return fmt.Errorf("update failed")
-
+		return fmt.Errorf("update failed: no documents modified")
 	}
 	return nil
 }
+
 func (mr *MongoRepo) DeleteUser(id string) error {
-	result, err := mr.UserCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	objectID, err := IsValidObjectID(id)
 	if err != nil {
-		return fmt.Errorf("delete failed")
+		return err
+	}
+
+	result, err := mr.UserCollection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
+	if err != nil {
+		return fmt.Errorf("delete failed: %w", err)
 	}
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("delete failed")
+		return fmt.Errorf("delete failed: no documents deleted")
 	}
 	return nil
 }
-func (mr *MongoRepo) VerifiyUser(id string) error {
-	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"verified": true})
+
+func (mr *MongoRepo) VerifyUser(id string) error {
+	objectID, err := IsValidObjectID(id)
 	if err != nil {
-		return fmt.Errorf("verification failed")
+		return err
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"verified":   true,
+			"updated_at": time.Now(),
+		},
+	}
+
+	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": objectID}, update)
+	if err != nil {
+		return fmt.Errorf("verification failed: %w", err)
 	}
 	if result.ModifiedCount == 0 {
-		return fmt.Errorf("verification failed")
+		return fmt.Errorf("verification failed: no documents modified")
+	}
+	return nil
+}
 
-	}
-	return nil
-}
 func (mr *MongoRepo) AuthenticateUser(id string, password string) error {
-	var user domain.User
-	err := mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	objectID, err := IsValidObjectID(id)
 	if err != nil {
-		return fmt.Errorf("invalid credential")
+		return err
 	}
+
+	var user domain.User
+	err = mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&user)
+	if err != nil {
+		return fmt.Errorf("invalid credential: %w", err)
+	}
+
 	if err = password_service.CheckPasswordHash(password, user.Password); err != nil {
-		return fmt.Errorf("invalid credential")
+		return fmt.Errorf("invalid credential: %w", err)
 	}
+
 	return nil
 }
-func (mr *MongoRepo) ListAllUsers() []domain.User {
+
+func (mr *MongoRepo) ListAllUsers() ([]domain.User, error) {
 	var users []domain.User
 	cursor, err := mr.UserCollection.Find(context.TODO(), bson.M{})
 	if err != nil {
-		return users
+		return nil, err
 	}
+	defer cursor.Close(context.TODO())
+
 	for cursor.Next(context.TODO()) {
 		var user domain.User
-		cursor.Decode(&user)
+		if err = cursor.Decode(&user); err != nil {
+			return nil, err
+		}
 		users = append(users, user)
 	}
-	return users
+
+	if err = cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
+
 func (mr *MongoRepo) ResetPassword(id string, password string) error {
-	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"password": password})
+	objectID, err := IsValidObjectID(id)
 	if err != nil {
-		return fmt.Errorf("password Reset failed")
+		return err
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"password":   password,
+			"updated_at": time.Now(),
+		},
+	}
+
+	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": objectID}, update)
+	if err != nil {
+		return fmt.Errorf("password reset failed: %w", err)
 	}
 	if result.ModifiedCount == 0 {
-		return fmt.Errorf("password Reset failed")
+		return fmt.Errorf("password reset failed: no documents modified")
 	}
 	return nil
+}
+
+func (mr *MongoRepo) CreateLoan(loan domain.Loan) (domain.Loan, error) {
+	loan.ID = primitive.NewObjectID().Hex()
+	loan.CreatedAt = time.Now()
+	loan.UpdatedAt = time.Now()
+
+	_, err := mr.LoanCollection.InsertOne(context.TODO(), loan)
+	if err != nil {
+		return domain.Loan{}, err
+	}
+	return loan, nil
+}
+
+func (mr *MongoRepo) FindLoanByID(id string) (domain.Loan, error) {
+	objectID, err := IsValidObjectID(id)
+	if err != nil {
+		return domain.Loan{}, err
+	}
+	fmt.Println("this is the loanid", objectID)
+	var loan domain.Loan
+	err = mr.LoanCollection.FindOne(context.TODO(), bson.M{"_id": objectID.Hex()}).Decode(&loan)
+	if err != nil {
+		return domain.Loan{}, err
+	}
+	return loan, nil
+}
+
+func (mr *MongoRepo) FindLoansByUserID(userID string) ([]domain.Loan, error) {
+	var loans []domain.Loan
+	cursor, err := mr.LoanCollection.Find(context.TODO(), bson.M{"user_id": userID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var loan domain.Loan
+		if err = cursor.Decode(&loan); err != nil {
+			return nil, err
+		}
+		loans = append(loans, loan)
+	}
+
+	if err = cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return loans, nil
+}
+
+func (mr *MongoRepo) FindAllLoans(status, order string) ([]domain.Loan, error) {
+	var loans []domain.Loan
+	fmt.Println("FindAllLoans", status, order)
+	findOptions := options.Find()
+	if order == "desc" {
+		findOptions.SetSort(bson.D{{Key: "created_at", Value: -1}})
+	} else {
+		findOptions.SetSort(bson.D{{Key: "created_at", Value: 1}})
+	}
+
+	filter := bson.M{}
+	if status != "all" {
+		filter["status"] = status
+	}
+
+	cursor, err := mr.LoanCollection.Find(context.TODO(), filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var loan domain.Loan
+		if err = cursor.Decode(&loan); err != nil {
+			return nil, err
+		}
+		loans = append(loans, loan)
+	}
+
+	if err = cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return loans, nil
+}
+
+func (mr *MongoRepo) UpdateLoanStatus(id string, status string) (string, error) {
+	objectID, err := IsValidObjectID(id)
+	if err != nil {
+		return "Update failed", err
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status":     status,
+			"updated_at": time.Now(),
+		},
+	}
+
+	result, err := mr.LoanCollection.UpdateOne(context.TODO(), bson.M{"_id": objectID.Hex()}, update)
+	if err != nil {
+		return "Update failed", err
+	}
+	if result.ModifiedCount == 0 {
+		return "Update failed: no documents modified", errors.New("update failed: no documents updated")
+	}
+	return "Loan status updated successfully", nil
+}
+
+func (mr *MongoRepo) DeleteLoan(id string) (string, error) {
+	objectID, err := IsValidObjectID(id)
+	if err != nil {
+		return "Delete failed", err
+	}
+
+	result, err := mr.LoanCollection.DeleteOne(context.TODO(), bson.M{"_id": objectID.Hex()})
+	if err != nil {
+		return "Delete failed", err
+	}
+	fmt.Println(result.DeletedCount, err)
+	if result.DeletedCount == 0 {
+		return " no documents deleted", errors.New("delete failed: no documents deleted")
+	}
+	return "Deleted loan with ID " + id, nil
 }

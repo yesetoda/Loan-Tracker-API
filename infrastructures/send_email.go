@@ -1,42 +1,54 @@
 package infrastructures
 
 import (
+	"example/b/Loan-Tracker-API/config"
+	"fmt"
 	"log"
 	"net/smtp"
 )
 
-func SendEmail(toEmail string, title string, body string, link string) error {
-
-	message := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>` + title + `</title>
-	</head>
-	<body>
-		<h1>` + title + `</h1>
-		<p>` + body + `</p>
-		<a href="` + link + `">Click the Link</a>
-	</body>
-	</html>
-	`
-
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-
-	key := "kdjb ggie qdei gqhl"
-	host := "smtp.gmail.com"
-	auth := smtp.PlainAuth("", "yeneineh.seiba@a2sv.org", key, "smtp.gmail.com")
-
-	port := "587"
-	address := host + ":" + port
-	messages := []byte(mime + message)
-
-	err := smtp.SendMail(address, auth, "abel.wendmu@a2sv.org", []string{toEmail}, messages)
+// SendEmail sends an email with the specified title, body, and link to the specified email address.
+func SendEmail(toEmail, title, body, link string) error {
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Println(err)
+		log.Printf("Failed to load config: %v", err)
 		return err
 	}
-	return nil
 
+	// Construct the HTML message
+	message := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>%s</title>
+		</head>
+		<body>
+			<h1>%s</h1>
+			<p>%s</p>
+			<a href="%s">Click the Link</a>
+		</body>
+		</html>
+	`, title, title, body, link)
+
+	// Prepare the MIME header and message body
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	emailMessage := []byte(mime + message)
+
+	// Setup SMTP configuration
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+	address := smtpHost + ":" + smtpPort
+
+	auth := smtp.PlainAuth("", cfg.Email.EmailSender, cfg.Email.EmailKey, smtpHost)
+
+	// Send the email
+	err = smtp.SendMail(address, auth, cfg.Email.EmailSender, []string{toEmail}, emailMessage)
+	if err != nil {
+		log.Printf("Failed to send email to %s: %v", toEmail, err)
+		return err
+	}
+
+	log.Printf("Email successfully sent to %s", toEmail)
+	return nil
 }

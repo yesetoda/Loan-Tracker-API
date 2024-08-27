@@ -2,6 +2,7 @@ package infrastructures
 
 import (
 	"errors"
+	"example/b/Loan-Tracker-API/config"
 	"example/b/Loan-Tracker-API/domain"
 	"example/b/Loan-Tracker-API/repository"
 	"net/http"
@@ -102,7 +103,7 @@ func (ac *AuthController) OWNERMiddleware() gin.HandlerFunc {
 			return
 		}
 		id := c.Param("id")
-		user, err := ac.userRepo.FinduserById(id)
+		user, err := ac.userRepo.FindUserById(id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			c.Abort()
@@ -116,7 +117,12 @@ func (ac *AuthController) OWNERMiddleware() gin.HandlerFunc {
 	}
 }
 func GetClaims(c *gin.Context) (*domain.Claims, error) {
-	var jwtSecret = []byte("secret")
+	config_domain, err := config.LoadConfig()
+	if err != nil {
+		return &domain.Claims{}, err
+	}
+
+	var jwtSecret = []byte(config_domain.Jwt.JwtKey)
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		return &domain.Claims{}, errors.New("missing authorization header")
