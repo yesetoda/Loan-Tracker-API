@@ -94,6 +94,21 @@ func (mr *MongoRepo) UpdateUser(id string, user domain.User) error {
 			"verify_token_exp": user.VerfyTokenExp,
 		},
 	}
+	if user.Password != "" {
+		update = bson.M{
+			"$set": bson.M{
+				"email":            user.Email,
+				"password":         user.Password,
+				"first_name":       user.FirstName,
+				"last_name":        user.LastName,
+				"verified":         user.Verified,
+				"is_admin":         user.IsAdmin,
+				"updated_at":       time.Now(),
+				"verify_token":     user.VerifyToken,
+				"verify_token_exp": user.VerfyTokenExp,
+			},
+		}
+	}
 
 	result, err := mr.UserCollection.UpdateOne(context.TODO(), bson.M{"_id": objectID}, update)
 	if err != nil {

@@ -187,7 +187,13 @@ func (uc *GeneralUsecase) PasswordReset(email string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	link := config_domain.Domain + "/users/resetPassword/?email=" + user.Email + "&token=" + string(confirmationToken)
+	user.VerifyToken = confirmationToken
+	user.VerfyTokenExp = time.Now().Add(time.Hour * 1)
+	err = uc.UpdateUser(user.ID, user)
+	if err != nil {
+		return "", err
+	}
+	link := config_domain.Domain + "/users/password-update/?email=" + user.Email + "&token=" + string(confirmationToken)
 	err = infrastructures.SendEmail(user.Email, "Password Reset", "This is the password reset link: ", link)
 	if err != nil {
 		return "", err
@@ -205,14 +211,28 @@ func (uc *GeneralUsecase) PasswordUpdate(email, token, password string) (string,
 	if !user.Verified {
 		return "", errors.New("account not activated")
 	}
+	fmt.Println("this is the user", user.Email, user.VerifyToken == token)
 	if user.VerifyToken == token {
 		if user.VerfyTokenExp.Before(time.Now()) {
 			return "Token has expired", errors.New("token expired")
 		}
-		user.Password, _ = password_service.HashPassword(password)
+		fmt.Println("new password", user.Password)
+		user.Password, err = password_service.HashPassword(password)
+		user.VerifyToken = ""
+		user.VerfyTokenExp = time.Now()
+		fmt.Println("new password", user.Password)
 		err := uc.Repo.UpdateUser(user.ID, user)
 		if err != nil {
 			return "password has not been updated", err
+		}
+		config_domain, err := config.LoadConfig()
+		if err != nil {
+			return "", err
+		}
+		link := config_domain.Domain + "/users/login"
+		err = infrastructures.SendEmail(user.Email, "Password Reseted successfully", "login using this link: ", link)
+		if err != nil {
+			return "", err
 		}
 		return "Password reset successful", nil
 	}
