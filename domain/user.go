@@ -5,6 +5,7 @@ import "time"
 type User struct {
 	ID string `json:"id,omitempty" bson:"_id,omitempty"`
 
+	Username string `json:"username" bson:"username" binding:"required"`
 	Email    string `json:"email" bson:"email" binding:"required,email"`
 	Password string `json:"password" bson:"password" binding:"required"`
 
