@@ -1,8 +1,8 @@
 package router
 
 import (
-	"example/b/Loan-Tracker-API/controller"
-	"example/b/Loan-Tracker-API/infrastructures"
+	"github.com/yesetoda/b/Loan-Tracker-API/controller"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,10 +12,10 @@ type UserRouter struct {
 	auth       *infrastructures.AuthController
 }
 
-func NewUserRouter(uc *controller.UserController) *UserRouter {
+func NewUserRouter(uc *controller.UserController,ac *infrastructures.AuthController) *UserRouter {
 	return &UserRouter{
 		controller: uc,
-		// auth:       ac,
+		auth:       ac,
 	}
 }
 
@@ -28,11 +28,11 @@ func (r *UserRouter) SetupRoutes() {
 	// TODO:
 	router.POST("/users/password-reset/:email", r.controller.HandleRequestResetPassword)
 	router.POST("/users/password-update", r.controller.HandleResetPassword)
-	router.GET("/users/profile", r.auth.OWNERMiddleware(), r.controller.HandleFindUserById)
+	router.GET("/users/profile/:username", r.auth.OWNERMiddleware(), r.controller.HandleFindUserByUsername)
 	router.GET("/users/token/refresh", r.controller.HandleRefreshToken)
 
 	router.GET("admin/users", r.auth.ADMINMiddleware(), r.controller.HandleGetAllUsers)
-	router.GET("admin/users/:id", r.auth.ADMINMiddleware(), r.controller.HandleFindUserById)
+	router.GET("admin/users/:id", r.auth.ADMINMiddleware(), r.controller.HandleFindUserByUsername)
 	router.DELETE("admin/users/:id", r.auth.ADMINMiddleware(), r.controller.HandleDeleteUser)
 
 	loanRoutes := router.Group("/loans")

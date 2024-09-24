@@ -1,7 +1,7 @@
 package infrastructures
 
 import (
-	"example/b/Loan-Tracker-API/config"
+	"github.com/yesetoda/b/Loan-Tracker-API/config"
 	"fmt"
 	"log"
 	"net/smtp"

@@ -2,7 +2,7 @@ database:
   uri: "mongodb://localhost:27017"
   name: "Loan"
 email:
-  key: "kdjb ggie qdei gqhl"
+  key: "ftau bsae lmkp gvqd"
   sender: "yeneineh.seiba@a2sv.org"
 port: "http://localhost:8080"
 jwt:

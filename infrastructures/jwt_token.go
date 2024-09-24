@@ -2,8 +2,9 @@ package infrastructures
 
 import (
 	"errors"
-	"example/b/Loan-Tracker-API/domain"
 	"time"
+
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -37,6 +38,7 @@ func createJWTToken(user *domain.User, jwtSecret string, duration time.Duration)
 		Email:    user.Email,
 		IsAdmin:  user.IsAdmin,
 		IsActive: user.Verified,
+		Username: user.Username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			IssuedAt:  time.Now().Unix(),

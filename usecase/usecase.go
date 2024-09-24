@@ -8,11 +8,11 @@ import (
 	"math/big"
 	"time"
 
-	"example/b/Loan-Tracker-API/config"
-	"example/b/Loan-Tracker-API/domain"
-	"example/b/Loan-Tracker-API/infrastructures"
-	"example/b/Loan-Tracker-API/infrastructures/password_service"
-	"example/b/Loan-Tracker-API/repository"
+	"github.com/yesetoda/b/Loan-Tracker-API/config"
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures/password_service"
+	"github.com/yesetoda/b/Loan-Tracker-API/repository"
 )
 
 type GeneralUsecase struct {
@@ -91,11 +91,13 @@ func (uc *GeneralUsecase) ListAllUsers() []domain.User {
 	users, _ := uc.Repo.ListAllUsers()
 	return users
 }
-func (uc *GeneralUsecase) FindUserById(id string) (domain.User, error) {
-	return uc.Repo.FindUserById(id)
+func (uc *GeneralUsecase) FindUserByUsername(username string) (domain.User, error) {
+	fmt.Println("this is find user by  username", username)
+	return uc.Repo.FindUserBy(username)
 }
 
 func (uc *GeneralUsecase) FinduserByEmail(email string) (domain.User, error) {
+	fmt.Println("this is find user by  email")
 	return uc.Repo.FindUserByEmail(email)
 }
 
@@ -193,7 +195,7 @@ func (uc *GeneralUsecase) PasswordReset(email string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	link := config_domain.Domain + "/users/password-update/?email=" + user.Email + "&token=" + string(confirmationToken)
+	link := config_domain.Port + "/users/password-update/?email=" + user.Email + "&token=" + string(confirmationToken)
 	err = infrastructures.SendEmail(user.Email, "Password Reset", "This is the password reset link: ", link)
 	if err != nil {
 		return "", err
@@ -220,7 +222,7 @@ func (uc *GeneralUsecase) PasswordUpdate(email, token, password string) (string,
 		user.Password, err = password_service.HashPassword(password)
 		user.VerifyToken = ""
 		user.VerfyTokenExp = time.Now()
-		fmt.Println("new password", user.Password)
+		fmt.Println("new password", user.Password, err)
 		err := uc.Repo.UpdateUser(user.ID, user)
 		if err != nil {
 			return "password has not been updated", err

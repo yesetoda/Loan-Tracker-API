@@ -1,0 +1,9 @@
+database:
+  uri: "mongodb-connection-string"
+  name: "dbname"
+email:
+  key: "key"
+  sender: "email"
+port: "http://localhost:8080"
+jwt:
+  jwtKey: "secret"

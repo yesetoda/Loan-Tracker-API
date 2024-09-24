@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
-	"example/b/Loan-Tracker-API/domain"
-	"example/b/Loan-Tracker-API/infrastructures/password_service"
 	"fmt"
 	"time"
+
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures/password_service"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -63,13 +64,9 @@ func (mr *MongoRepo) FindUserByEmail(email string) (domain.User, error) {
 	return user, nil
 }
 
-func (mr *MongoRepo) FindUserById(id string) (domain.User, error) {
-	objectID, err := IsValidObjectID(id)
-	if err != nil {
-		return domain.User{}, err
-	}
+func (mr *MongoRepo) FindUserBy(username string) (domain.User, error) {
 	var user domain.User
-	err = mr.UserCollection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&user)
+	err := mr.UserCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&user)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("no such user")
 	}

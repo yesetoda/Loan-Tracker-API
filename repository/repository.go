@@ -1,13 +1,13 @@
 package repository
 
 import (
-	"example/b/Loan-Tracker-API/domain"
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
 )
 
 type GeneralRepository interface {
 	CreateUser(domain.User) (domain.User, error)
 	FindUserByEmail(string) (domain.User, error)
-	FindUserById(id string) (domain.User, error)
+	FindUserBy(id string) (domain.User, error)
 	UpdateUser(id string, user domain.User) error
 	DeleteUser(id string) (string error)
 	VerifyUser(id string) (string error)

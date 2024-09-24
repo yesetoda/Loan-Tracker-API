@@ -1,14 +1,15 @@
 package controller
 
 import (
-	"example/b/Loan-Tracker-API/config"
-	"example/b/Loan-Tracker-API/domain"
-	"example/b/Loan-Tracker-API/infrastructures"
-	"example/b/Loan-Tracker-API/infrastructures/password_service"
-	"example/b/Loan-Tracker-API/usecase"
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/yesetoda/b/Loan-Tracker-API/config"
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures"
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures/password_service"
+	"github.com/yesetoda/b/Loan-Tracker-API/usecase"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,9 +39,13 @@ func (c *UserController) HandleRegisterUser(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "User registered successfully"})
 }
 
-func (c *UserController) HandleFindUserById(ctx *gin.Context) {
-	id := ctx.Param("id")
-	user, err := c.usecase.FindUserById(id)
+func (c *UserController) HandleFindUserByUsername(ctx *gin.Context) {
+	fmt.Println("this is the Handle find user by username")
+
+	username := ctx.Param("username")
+	fmt.Println("this is the username", username)
+	user, err := c.usecase.FindUserByUsername(username)
+	fmt.Println("this is the user and error", user, err)
 	if err != nil {
 		ctx.JSON(404, gin.H{"error": err.Error()})
 		return
