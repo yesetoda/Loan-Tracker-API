@@ -1,5 +1,5 @@
 database:
-  uri: "mongodb+srv://yeneinehseiba:<db_password>@lamebora.hlmxq.mongodb.net/?retryWrites=true&w=majority&appName=LameBora"
+  uri: "mongodb+srv://yeneinehseiba:<db_password>@lamebora.hlmxq.mongodb.net/?retryWrites=true&w=majority&tls=true"
   # uri: "mongodb://localhost:27017"
   name: "Loan"
 email:
