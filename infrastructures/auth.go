@@ -2,21 +2,23 @@ package infrastructures
 
 import (
 	"errors"
-	"example/b/Loan-Tracker-API/config"
-	"example/b/Loan-Tracker-API/domain"
-	"example/b/Loan-Tracker-API/repository"
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/yesetoda/b/Loan-Tracker-API/config"
+	"github.com/yesetoda/b/Loan-Tracker-API/domain"
+	"github.com/yesetoda/b/Loan-Tracker-API/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
 type AuthController struct {
-	userRepo *repository.MongoRepo
+	userRepo repository.GeneralRepository
 }
 
-func NewAuthController(userRepo *repository.MongoRepo) *AuthController {
+func NewAuthController(userRepo repository.GeneralRepository) *AuthController {
 	return &AuthController{
 		userRepo: userRepo,
 	}
@@ -51,8 +53,7 @@ func (ac *AuthController) ADMINMiddleware() gin.HandlerFunc {
 		}()
 		claims, err := GetClaims(c)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		if claims.IsAdmin {
@@ -60,7 +61,6 @@ func (ac *AuthController) ADMINMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.AbortWithStatusJSON(http.StatusForbidden, errors.New("invalid token"))
-		c.Abort()
 	}
 }
 
@@ -96,20 +96,27 @@ func (ac *AuthController) OWNERMiddleware() gin.HandlerFunc {
 				c.Abort()
 			}
 		}()
+		fmt.Println("this is the owner middleware")
 		claim, err := GetClaims(c)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
-		id := c.Param("id")
-		user, err := ac.userRepo.FindUserById(id)
+		username := c.Param("username")
+		fmt.Println("this is the claim,username", claim, username)
+		fmt.Println("start calling find user by username ")
+		user, err := ac.userRepo.FindUserBy(username)
+		fmt.Println("end calling find user by username ")
+
+		fmt.Println("this is the username", username, user)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
-		if user.ID == claim.ID {
+		fmt.Println("this is the user", user, username)
+		if user.Username == claim.Username {
 			c.Next()
 			return
 		}

@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
-	"example/b/Loan-Tracker-API/config"
-	"example/b/Loan-Tracker-API/controller"
 	"fmt"
 
-	// "example/b/Loan-Tracker-API/infrastructures"
-	"example/b/Loan-Tracker-API/repository"
-	"example/b/Loan-Tracker-API/router"
-	"example/b/Loan-Tracker-API/usecase"
+	"github.com/yesetoda/b/Loan-Tracker-API/config"
+	"github.com/yesetoda/b/Loan-Tracker-API/controller"
+
 	"log"
+
+	"github.com/yesetoda/b/Loan-Tracker-API/infrastructures"
+	"github.com/yesetoda/b/Loan-Tracker-API/repository"
+	"github.com/yesetoda/b/Loan-Tracker-API/router"
+	"github.com/yesetoda/b/Loan-Tracker-API/usecase"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,7 +39,8 @@ func main() {
 	userRepo := repository.NewMongoRepo(userCollection, LoanCollection)
 	userUsecase := usecase.NewUsecase(userRepo)
 	userController := controller.NewUserController(&userUsecase)
-	// auth := infrastructures.NewAuthController(userRepo)
-	router := router.NewUserRouter(userController)
+	auth := infrastructures.NewAuthController(userRepo)
+	fmt.Println(auth)
+	router := router.NewUserRouter(userController,auth)
 	router.SetupRoutes()
 }
