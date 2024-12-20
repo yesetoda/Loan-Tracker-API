@@ -7,7 +7,7 @@ Loan Tracker Api
 **End Date:** YYYY-MM-DD
 
 # Project Overview
-A brief description of the project, including its objectives, purpose, and any relevant background information.
+The Loan Tracker API is a RESTful API built with Golang using the Gin framework. It allows users to manage loans, apply for new loans, and view loan statuses. Admin functionalities are also included for monitoring system activity and managing loan records.
 
 # Tools and Programming Languages
 - **Languages:** 
