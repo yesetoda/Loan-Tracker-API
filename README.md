@@ -73,7 +73,7 @@ The Loan Tracker API is a RESTful API built with Golang using the Gin framework.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/loan-tracker-api.git
+   git clone https://github.com/yesetoda/loan-tracker-api.git
    ```
 
 2. Navigate to the project directory:
